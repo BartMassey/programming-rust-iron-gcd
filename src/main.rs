@@ -4,7 +4,8 @@
 // Webserver provides a GCD function.
 
 extern crate iron;
-#[macro_use] extern crate mime;
+#[macro_use]
+extern crate mime;
 extern crate router;
 extern crate urlencoded;
 
@@ -22,7 +23,7 @@ fn post_gcd(request: &mut Request) -> IronResult<Response> {
             response.set_mut(status::BadRequest);
             response.set_mut(format!("Error parsing form data: {:?}\n", e));
             return Ok(response);
-        },
+        }
         Ok(data) => data,
     };
 
@@ -31,7 +32,7 @@ fn post_gcd(request: &mut Request) -> IronResult<Response> {
             response.set_mut(status::BadRequest);
             response.set_mut(format!("No numbers (\"n\") in form data\n"));
             return Ok(response);
-        },
+        }
         Some(data) => data,
     };
 
@@ -42,7 +43,7 @@ fn post_gcd(request: &mut Request) -> IronResult<Response> {
                 response.set_mut(status::BadRequest);
                 response.set_mut(format!("Bad number n={}\n", d));
                 return Ok(response);
-            },
+            }
             Ok(d) => {
                 result = match result {
                     None => Some(d),
@@ -70,14 +71,16 @@ fn get_form(_request: &mut Request) -> IronResult<Response> {
 
     response.set_mut(status::Ok);
     response.set_mut(mime!(Text/Html; Charset=Utf8));
-    response.set_mut(r#"
+    response.set_mut(
+        r#"
         <title>GCD Calculator</title>
         <form action="/gcd" method = "post">
             <input type="text" name="n"/>
             <input type="text" name="n"/>
             <button type="submit">Compute GCD</button>
         </form>
-    "#);
+        "#,
+    );
 
     Ok(response)
 }
@@ -105,7 +108,6 @@ fn test_gcd() {
     assert_eq!(gcd(n1, n2), d)
 }
 
-
 // Start a webserver offering a form.
 fn main() {
     let mut router = Router::new();
@@ -114,6 +116,7 @@ fn main() {
     router.post("/gcd", post_gcd, "gcd");
 
     println!("Serving on http://localhost:3000...");
-    let _ = Iron::new(router).http("localhost:3000")
+    let _ = Iron::new(router)
+        .http("localhost:3000")
         .expect("could not start iron server");
 }
