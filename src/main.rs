@@ -15,23 +15,34 @@ use router::Router;
 use std::str::FromStr;
 use urlencoded::UrlEncodedBody;
 
-fn post_gcd(request: &mut Request) -> IronResult<Response> {
-    let mut response = Response::new();
+fn response(status: status::Status, msg: String) -> Response {
+    let mut r = Response::new();
+    r.set_mut(status);
+    r.set_mut(msg);
+    r
+}
 
+fn response_bad(msg: String) -> IronResult<Response> {
+    Ok(response(status::BadRequest, msg))
+}
+
+fn response_ok(msg: String) -> IronResult<Response> {
+    let mut r = response(status::Ok, msg);
+    r.set_mut(mime!(Text/Html; Charset=Utf8));
+    Ok(r)
+}
+
+fn post_gcd(request: &mut Request) -> IronResult<Response> {
     let data = match request.get_ref::<UrlEncodedBody>() {
         Err(e) => {
-            response.set_mut(status::BadRequest);
-            response.set_mut(format!("Error parsing form data: {:?}\n", e));
-            return Ok(response);
+            return response_bad(format!("Error parsing form data: {:?}\n", e));
         }
         Ok(data) => data,
     };
 
     let data = match data.get("n") {
         None => {
-            response.set_mut(status::BadRequest);
-            response.set_mut(format!("No numbers (\"n\") in form data\n"));
-            return Ok(response);
+            return response_bad(format!("No numbers (\"n\") in form data\n"));
         }
         Some(data) => data,
     };
@@ -40,9 +51,7 @@ fn post_gcd(request: &mut Request) -> IronResult<Response> {
     for d in data {
         match u64::from_str(&d) {
             Err(_) => {
-                response.set_mut(status::BadRequest);
-                response.set_mut(format!("Bad number n={}\n", d));
-                return Ok(response);
+                return response_bad(format!("Bad number n={}\n", d));
             }
             Ok(d) => {
                 result = match result {
@@ -54,24 +63,15 @@ fn post_gcd(request: &mut Request) -> IronResult<Response> {
     }
 
     if let None = result {
-        response.set_mut(status::BadRequest);
-        response.set_mut(format!("No numbers given\n"));
-        return Ok(response);
+        return response_bad(format!("No numbers given\n"));
     }
 
-    response.set_mut(status::Ok);
-    response.set_mut(mime!(Text/Html; Charset=Utf8));
-    response.set_mut(format!("GCD is {}", result.unwrap()));
-    Ok(response)
+    response_ok(format!("GCD is {}", result.unwrap()))
 }
 
 // Provide form for webserver.
 fn get_form(_request: &mut Request) -> IronResult<Response> {
-    let mut response = Response::new();
-
-    response.set_mut(status::Ok);
-    response.set_mut(mime!(Text/Html; Charset=Utf8));
-    response.set_mut(
+    response_ok(
         r#"
         <title>GCD Calculator</title>
         <form action="/gcd" method = "post">
@@ -79,10 +79,8 @@ fn get_form(_request: &mut Request) -> IronResult<Response> {
             <input type="text" name="n"/>
             <button type="submit">Compute GCD</button>
         </form>
-        "#,
-    );
-
-    Ok(response)
+        "#.to_string(),
+    )
 }
 
 // Compute the GCD of two numbers.
