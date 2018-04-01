@@ -35,14 +35,19 @@ fn response_ok(msg: String) -> IronResult<Response> {
 fn post_gcd(request: &mut Request) -> IronResult<Response> {
     let data = match request.get_ref::<UrlEncodedBody>() {
         Err(e) => {
-            return response_bad(format!("Error parsing form data: {:?}\n", e));
+            return response_bad(format!(
+                "Error parsing form data: {:?}\n",
+                e
+            ));
         }
         Ok(data) => data,
     };
 
     let data = match data.get("n") {
         None => {
-            return response_bad(format!("No numbers (\"n\") in form data\n"));
+            return response_bad(format!(
+                "No numbers (\"n\") in form data\n"
+            ));
         }
         Some(data) => data,
     };
