@@ -1,4 +1,7 @@
-// Copyright (c) 2018 Bart Massey
+// Copyright © 2018 Jim Blandy, Jason Orendorff, Bart Massey
+// This work is released under the "MIT License".
+// Please see the file LICENSE in the source
+// distribution of this software for license terms.
 
 // Iron-gcd example from Blandy & Orendorff, ch 1.
 // Webserver provides a GCD function.
