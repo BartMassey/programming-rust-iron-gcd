@@ -6,14 +6,9 @@
 // Iron-gcd example from Blandy & Orendorff, ch 1.
 // Webserver provides a GCD function.
 
-extern crate iron;
-#[macro_use]
-extern crate mime;
-extern crate router;
-extern crate urlencoded;
-
 use iron::prelude::*;
 use iron::status;
+use mime::*;
 use router::Router;
 use std::str::FromStr;
 use urlencoded::UrlEncodedBody;
@@ -38,19 +33,14 @@ fn response_ok(msg: String) -> IronResult<Response> {
 fn post_gcd(request: &mut Request) -> IronResult<Response> {
     let data = match request.get_ref::<UrlEncodedBody>() {
         Err(e) => {
-            return response_bad(format!(
-                "Error parsing form data: {:?}\n",
-                e
-            ));
+            return response_bad(format!("Error parsing form data: {:?}\n", e));
         }
         Ok(data) => data,
     };
 
     let data = match data.get("n") {
         None => {
-            return response_bad(format!(
-                "No numbers (\"n\") in form data\n"
-            ));
+            return response_bad("No numbers (\"n\") in form data\n".to_string());
         }
         Some(data) => data,
     };
@@ -70,8 +60,8 @@ fn post_gcd(request: &mut Request) -> IronResult<Response> {
         }
     }
 
-    if let None = result {
-        return response_bad(format!("No numbers given\n"));
+    if result.is_none() {
+        return response_bad("No numbers given\n".to_string());
     }
 
     response_ok(format!("GCD is {}", result.unwrap()))
@@ -87,7 +77,8 @@ fn get_form(_request: &mut Request) -> IronResult<Response> {
             <input type="text" name="n"/>
             <button type="submit">Compute GCD</button>
         </form>
-        "#.to_string(),
+        "#
+        .to_string(),
     )
 }
 

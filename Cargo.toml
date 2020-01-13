@@ -6,7 +6,7 @@
 [package]
 name = "iron-gcd"
 version = "0.1.0"
-authors = ["Bart Massey <bart@cs.pdx.edu>"]
+edition = "2018"
 
 [dependencies]
 iron = "0.5.1"
