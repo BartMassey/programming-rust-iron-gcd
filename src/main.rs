@@ -65,6 +65,11 @@ fn post_gcd(request: &mut Request) -> IronResult<Response> {
                 return response_bad(format!("Bad number n={}\n", d));
             }
             Ok(d) => {
+                if d == 0 {
+                    return response_bad(
+                        "Cannot take GCD of 0\n".to_string(),
+                    );
+                }
                 result = match result {
                     None => Some(d),
                     Some(r) => Some(gcd(r, d)),
