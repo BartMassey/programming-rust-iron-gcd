@@ -13,6 +13,7 @@ use router::Router;
 use std::str::FromStr;
 use urlencoded::UrlEncodedBody;
 
+/// Generate a response with a given status and message.
 fn response(status: status::Status, msg: String) -> Response {
     let mut r = Response::new();
     r.set_mut(status);
@@ -20,31 +21,42 @@ fn response(status: status::Status, msg: String) -> Response {
     r
 }
 
+/// Generate a response to a failed request.
 fn response_bad(msg: String) -> IronResult<Response> {
     Ok(response(status::BadRequest, msg))
 }
 
+/// Generate a response to successful request.
 fn response_ok(msg: String) -> IronResult<Response> {
     let mut r = response(status::Ok, msg);
     r.set_mut(mime!(Text/Html; Charset=Utf8));
     Ok(r)
 }
 
+/// Handle a GCD POST request.
 fn post_gcd(request: &mut Request) -> IronResult<Response> {
+    // Get the form data from the client.
     let data = match request.get_ref::<UrlEncodedBody>() {
         Err(e) => {
-            return response_bad(format!("Error parsing form data: {:?}\n", e));
+            return response_bad(format!(
+                "Error parsing form data: {:?}\n",
+                e
+            ));
         }
         Ok(data) => data,
     };
 
+    // Get the "n" field from the form data.
     let data = match data.get("n") {
         None => {
-            return response_bad("No numbers (\"n\") in form data\n".to_string());
+            return response_bad(
+                "No numbers (\"n\") in form data\n".to_string(),
+            );
         }
         Some(data) => data,
     };
 
+    // Parse the numbers and apply GCD.
     let mut result = None;
     for d in data {
         match u64::from_str(&d) {
@@ -60,14 +72,17 @@ fn post_gcd(request: &mut Request) -> IronResult<Response> {
         }
     }
 
+    // On failure, return a failure response.
     if result.is_none() {
         return response_bad("No numbers given\n".to_string());
     }
 
+    // Return a renderable HTML result.
     response_ok(format!("GCD is {}", result.unwrap()))
 }
 
-// Provide form for webserver.
+/// Provide form for webserver. XXX Hardcoding HTML isn't
+/// usually the right plan: this is just a demo.
 fn get_form(_request: &mut Request) -> IronResult<Response> {
     response_ok(
         r#"
@@ -82,7 +97,7 @@ fn get_form(_request: &mut Request) -> IronResult<Response> {
     )
 }
 
-// Compute the GCD of two numbers.
+/// Compute the GCD of two numbers.
 fn gcd(mut n: u64, mut m: u64) -> u64 {
     assert!(n != 0 && m != 0);
     while m != 0 {
@@ -105,13 +120,18 @@ fn test_gcd() {
     assert_eq!(gcd(n1, n2), d)
 }
 
-// Start a webserver offering a form.
+/// Start a webserver offering a form.
 fn main() {
+    // The router determines what function will be called
+    // based on the path in the URL.
     let mut router = Router::new();
 
+    // Route to put up the form.
     router.get("/", get_form, "root");
+    // Route to handle form data.
     router.post("/gcd", post_gcd, "gcd");
 
+    // Start the server.
     println!("Serving on http://localhost:3000...");
     let _ = Iron::new(router)
         .http("localhost:3000")
