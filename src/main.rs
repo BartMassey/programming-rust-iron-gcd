@@ -3,8 +3,9 @@
 // Please see the file LICENSE in the source
 // distribution of this software for license terms.
 
-// Iron-gcd example from Blandy & Orendorff, ch 1.
-// Webserver provides a GCD function.
+//! Iron-gcd example from Blandy & Orendorff, ch 1.
+//! This web server provides a form for calculating
+//! the GCD of two numbers.
 
 use iron::prelude::*;
 use iron::status;
