@@ -73,13 +73,13 @@ fn post_gcd(request: &mut Request) -> IronResult<Response> {
         }
     }
 
-    // On failure, return a failure response.
-    if result.is_none() {
-        return response_bad("No numbers given\n".to_string());
+    // Respond.
+    match result {
+        // On failure, return a failure response.
+        None => response_bad("No numbers given\n".to_string()),
+        // Return a renderable HTML result.
+        Some(answer) => response_ok(format!("GCD is {}", answer)),
     }
-
-    // Return a renderable HTML result.
-    response_ok(format!("GCD is {}", result.unwrap()))
 }
 
 /// Provide form for webserver. XXX Hardcoding HTML isn't
